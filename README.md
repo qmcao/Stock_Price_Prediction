@@ -1,1 +1,1 @@
-test
+This is the repo for CS 273 class project
