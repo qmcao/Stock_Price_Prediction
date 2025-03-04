@@ -15,10 +15,11 @@ def get_stock_data(ticker, start, end):
 
 # 2. Feature Engineering
 def add_technical_indicators(df):
-    df['SMA_10'] = talib.SMA(df['Close'], timeperiod=10)
-    df['SMA_50'] = talib.SMA(df['Close'], timeperiod=50)
-    df['RSI'] = talib.RSI(df['Close'], timeperiod=14)
-    df['MACD'], df['MACD_signal'], _ = talib.MACD(df['Close'])
+    close = df['Close'].values.ravel()
+    df['SMA_10'] = talib.SMA(close, timeperiod=10)
+    df['SMA_50'] = talib.SMA(close, timeperiod=50)
+    df['RSI'] = talib.RSI(close, timeperiod=14)
+    df['MACD'], df['MACD_signal'], _ = talib.MACD(close)
     df['Volatility'] = df['Close'].rolling(10).std()
     df['Returns'] = df['Close'].pct_change()
     df['Target'] = (df['Returns'].shift(-1) > 0).astype(int)  # 1 if next day is up, else 0
