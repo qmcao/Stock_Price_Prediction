@@ -3,6 +3,7 @@ import pandas as pd
 import yfinance as yf
 import talib
 from sklearn.model_selection import train_test_split, TimeSeriesSplit, GridSearchCV
+from sklearn.model_selection import train_test_split, TimeSeriesSplit, GridSearchCV
 from sklearn.preprocessing import StandardScaler
 from sklearn.ensemble import RandomForestClassifier
 from xgboost import XGBClassifier
@@ -94,9 +95,4 @@ def train_and_evaluate(X_train, X_test, y_train, y_test, rf_model, xgb_model):
 data = get_stock_data('AAPL', '2020-01-01', '2024-01-01')
 data = add_technical_indicators(data)
 X_train, X_test, y_train, y_test = prepare_data(data)
-
-# Hyperparameter tuning on training data
-best_rf, best_xgb = hyperparameter_tuning(X_train, y_train)
-
-# Evaluate the tuned models on the test set and show predictions
-train_and_evaluate(X_train, X_test, y_train, y_test, best_rf, best_xgb)
+train_and_evaluate(X_train, X_test, y_train, y_test)
