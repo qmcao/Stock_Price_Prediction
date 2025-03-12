@@ -7,19 +7,22 @@ from sklearn.preprocessing import StandardScaler
 from sklearn.ensemble import RandomForestClassifier
 from xgboost import XGBClassifier
 from sklearn.metrics import accuracy_score, classification_report
-from utils import get_stock_data, add_technical_indicators, \
-prepare_data, hyperparameter_tuning, train_and_evaluate
+from models import run_classical_pipeline, run_pytorch_pipeline, run_tensorflow_pipeline
 
 
 if __name__ == '__main__':
-    # Execute the Pipeline
-    data = get_stock_data('AAPL', '2020-01-01', '2024-01-01')
-    data = add_technical_indicators(data)
-
-    models = {
-        'RandomForest': RandomForestClassifier(random_state=42),
-        'XGBoost': XGBClassifier(eval_metric='logloss', random_state=42)
-    }
-
-    X_train, X_test, y_train, y_test = prepare_data(data)
-    train_and_evaluate(X_train, X_test, y_train, y_test, models)
+    print("Select a pipeline to run:")
+    print("1. Classical ML Pipeline")
+    print("2. TensorFlow Pipeline")
+    print("3. PyTorch Pipeline")
+    
+    choice = input("Enter your choice (1/2/3): ")
+    
+    if choice == '1':
+        run_classical_pipeline()
+    elif choice == '2':
+        run_tensorflow_pipeline()
+    elif choice == '3':
+        run_pytorch_pipeline()
+    else:
+        print("Invalid choice. Please enter 1, 2, or 3.")
