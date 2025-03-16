@@ -7,8 +7,9 @@ from sklearn.preprocessing import StandardScaler
 from sklearn.ensemble import RandomForestClassifier
 from xgboost import XGBClassifier
 from sklearn.metrics import accuracy_score, classification_report
-from utils import get_stock_data, add_technical_indicators, \
-prepare_data, hyperparameter_tuning, train_and_evaluate
+from utils import get_stock_data, add_technical_indicators, prepare_data, hyperparameter_tuning, train_and_evaluate
+from get_finbert_sentiment import get_finbert_score, get_sentiment_table
+
 
 # 1. Fetch Stock Data
 def get_stock_data(ticker, start, end):
@@ -16,7 +17,16 @@ def get_stock_data(ticker, start, end):
     return data
 
 # 2. Feature Engineering
-def add_technical_indicators(df):
+
+sentiment_score = pd.read_csv("sentiment_score.csv")
+
+def add_technical_indicators(df, sentiment_score):
+    # Ensure the stock data has a Date column
+    df = df.reset_index()  # 'Date' becomes a column
+    if isinstance(df.columns, pd.MultiIndex):
+        df.columns = df.columns.get_level_values(0)
+
+    # Compute technical indicators as before:
     close = df['Close'].values.ravel()
     df['SMA_10'] = talib.SMA(close, timeperiod=10)
     df['SMA_50'] = talib.SMA(close, timeperiod=50)
@@ -24,13 +34,26 @@ def add_technical_indicators(df):
     df['MACD'], df['MACD_signal'], _ = talib.MACD(close)
     df['Volatility'] = df['Close'].rolling(10).std()
     df['Returns'] = df['Close'].pct_change()
-    df['Target'] = (df['Returns'] >= 0).astype(int)    
-    df.dropna(inplace=True)
-    return df
+    df['Target'] = (df['Returns'] >= 0).astype(int)
+
+    df.reset_index(inplace=True)
+    df.columns = df.columns.get_level_values(0)
+
+    # Convert 'Date' column in stock data to datetime
+
+    df['Date'] = pd.to_datetime(df['Date'])
+    sentiment_score["Date"] = pd.to_datetime(sentiment_score["Date"])
+    #merge
+    df = pd.merge(df, sentiment_score, on="Date", how="right")
+    
+    df["rolling_mean_score"] = df["rolling_mean_score"].fillna(0)
+
+
+    return df.dropna()
 
 # 3. Data Preparation
 def prepare_data(df):
-    features = ['SMA_10', 'SMA_50', 'RSI', 'MACD', 'MACD_signal', 'Volatility']
+    features = ['SMA_10', 'SMA_50', 'RSI', 'MACD', 'MACD_signal', 'Volatility',"rolling_mean_score"]
     X = df[features]
     y = df['Target']
     # Using a time-aware train/test split (no shuffling)
@@ -41,7 +64,7 @@ def prepare_data(df):
     return X_train, X_test, y_train, y_test
 
 # 4. Hyperparameter Tuning
-def hyperparameter_tuning(X_train, y_train, model, model_grid, random_state=42):
+def hyperparameter_tuning(X_train, y_train):
     tscv = TimeSeriesSplit(n_splits=5)
     
     # Grid for RandomForestClassifier
@@ -91,9 +114,3 @@ def train_and_evaluate(X_train, X_test, y_train, y_test, rf_model, xgb_model):
         print(f'\n{name} Model Performance:')
         print(f'Accuracy: {accuracy_score(y_test, y_pred):.2f}')
         print(classification_report(y_test, y_pred))
-
-# Execute the Pipeline
-data = get_stock_data('AAPL', '2020-01-01', '2024-01-01')
-data = add_technical_indicators(data)
-X_train, X_test, y_train, y_test = prepare_data(data)
-train_and_evaluate(X_train, X_test, y_train, y_test)

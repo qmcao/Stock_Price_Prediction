@@ -23,13 +23,14 @@ from utils import get_stock_data, add_technical_indicators, prepare_data, hyperp
 # --------------------------------------------------
 # Classical Machine Learning Pipeline
 # --------------------------------------------------
+sentiment_score = pd.read_csv("Stock_Price_Prediction\sentiment_score.csv")
 def run_classical_pipeline():
     print("Running Classical Machine Learning Pipeline")
-    data = get_stock_data('AAPL', '2014-01-01', '2024-01-01')
-    data = add_technical_indicators(data)
+    data = get_stock_data('AAPL', '2014-01-01', '2023-12-01')
+    data = add_technical_indicators(data, sentiment_score)
     
     # prepare_data() returns features:
-    # ['SMA_10', 'SMA_50', 'RSI', 'MACD', 'MACD_signal', 'Volatility']
+    # ['SMA_10', 'SMA_50', 'RSI', 'MACD', 'MACD_signal', 'Volatility', 'rolling_mean_score']
     X_train, X_test, y_train, y_test = prepare_data(data)
     
     # Define classical ML models
@@ -49,8 +50,8 @@ def run_tensorflow_pipeline():
     print("Running TensorFlow Pipeline")
     
     # Load and preprocess data using utils
-    data = get_stock_data('AAPL', '2014-01-01', '2024-01-01')
-    df = add_technical_indicators(data)
+    data = get_stock_data('AAPL', '2014-01-01', '2023-12-01')
+    df = add_technical_indicators(data, sentiment_score)
     
     # Ensure numeric returns and define target (Returns > 0)
     df = df[pd.to_numeric(df['Returns'], errors='coerce').notnull()]
@@ -58,7 +59,7 @@ def run_tensorflow_pipeline():
     df['Target'] = (df['Returns'] > 0).astype(int)
     
     # Select features and fill missing values. Note that here we include 'Returns'
-    features = ['SMA_10', 'SMA_50', 'RSI', 'MACD', 'Volatility', 'Returns']
+    features = ['SMA_10', 'SMA_50', 'RSI', 'MACD', 'Volatility', 'Returns','rolling_mean_score']
     X = df[features].fillna(0)
     y = df['Target']
     
@@ -112,8 +113,8 @@ def run_pytorch_pipeline():
     print("Running PyTorch Pipeline")
     
     # Load and preprocess data using utils
-    data = get_stock_data('AAPL', '2014-01-01', '2024-01-01')
-    df = add_technical_indicators(data)
+    data = get_stock_data('AAPL', '2014-01-01', '2023-12-01')
+    df = add_technical_indicators(data, sentiment_score)
     
     # Ensure numeric returns and define target (Returns > 0)
     df = df[pd.to_numeric(df['Returns'], errors='coerce').notnull()]
@@ -121,7 +122,7 @@ def run_pytorch_pipeline():
     df['Target'] = (df['Returns'] > 0).astype(int)
     
     # Select features and fill missing values
-    features = ['SMA_10', 'SMA_50', 'RSI', 'MACD', 'Volatility', 'Returns']
+    features = ['SMA_10', 'SMA_50', 'RSI', 'MACD', 'Volatility', 'Returns','rolling_mean_score']
     X = df[features].fillna(0).values
     y = df['Target'].values
     
