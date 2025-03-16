@@ -16,6 +16,9 @@ import torch
 import torch.nn as nn
 import torch.optim as optim
 from torch.utils.data import TensorDataset, DataLoader
+# Define classical ML models
+from sklearn.ensemble import RandomForestClassifier
+from xgboost import XGBClassifier
 
 # Import our utility functions from utils.py
 from utils import get_stock_data, add_technical_indicators, prepare_data, hyperparameter_tuning, train_and_evaluate
@@ -25,16 +28,13 @@ from utils import get_stock_data, add_technical_indicators, prepare_data, hyperp
 # --------------------------------------------------
 def run_classical_pipeline():
     print("Running Classical Machine Learning Pipeline")
-    data = get_stock_data('AAPL', '2014-01-01', '2024-01-01')
+    data = get_stock_data('AAPL', '2014-01-01', '2025-01-01')
     data = add_technical_indicators(data)
     
     # prepare_data() returns features:
     # ['SMA_10', 'SMA_50', 'RSI', 'MACD', 'MACD_signal', 'Volatility']
     X_train, X_test, y_train, y_test = prepare_data(data)
     
-    # Define classical ML models
-    from sklearn.ensemble import RandomForestClassifier
-    from xgboost import XGBClassifier
     models = {
         'RandomForest': RandomForestClassifier(random_state=42),
         'XGBoost': XGBClassifier(eval_metric='logloss', random_state=42)
@@ -49,7 +49,7 @@ def run_tensorflow_pipeline():
     print("Running TensorFlow Pipeline")
     
     # Load and preprocess data using utils
-    data = get_stock_data('AAPL', '2014-01-01', '2024-01-01')
+    data = get_stock_data('AAPL', '2014-01-01', '2025-01-01')
     df = add_technical_indicators(data)
     
     # Ensure numeric returns and define target (Returns > 0)
@@ -58,6 +58,8 @@ def run_tensorflow_pipeline():
     df['Target'] = (df['Returns'] > 0).astype(int)
     
     # Select features and fill missing values. Note that here we include 'Returns'
+    
+    # Can improve with SimpleImputer()
     features = ['SMA_10', 'SMA_50', 'RSI', 'MACD', 'Volatility', 'Returns']
     X = df[features].fillna(0)
     y = df['Target']
@@ -112,10 +114,10 @@ def run_pytorch_pipeline():
     print("Running PyTorch Pipeline")
     
     # Load and preprocess data using utils
-    data = get_stock_data('AAPL', '2014-01-01', '2024-01-01')
+    data = get_stock_data('AAPL', '2014-01-01', '2025-01-01')
     df = add_technical_indicators(data)
     
-    # Ensure numeric returns and define target (Returns > 0)
+    # Ensure numeric returns and define target (Returns > 0)3
     df = df[pd.to_numeric(df['Returns'], errors='coerce').notnull()]
     df['Returns'] = df['Returns'].astype(float)
     df['Target'] = (df['Returns'] > 0).astype(int)

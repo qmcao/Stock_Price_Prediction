@@ -41,16 +41,28 @@ def add_technical_indicators(df):
 
 
 # 3. Data Preparation
-def prepare_data(df):
+def prepare_data(df, train_size=0.8):
+    # Ensure the DataFrame is sorted by the datetime index or a date column.
+    df = df.sort_index()
+
     features = ['SMA_10', 'SMA_50', 'RSI', 'MACD', 'MACD_signal', 'Volatility']
     X = df[features]
     y = df['Target']
-    # Using a time-aware train/test split (no shuffling)
-    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, shuffle=False)
+    
+    # Calculate the index for the split based on the train_size ratio.
+    split_idx = int(len(df) * train_size)
+    
+    # Use explicit slicing to preserve chronological order.
+    X_train, X_test = X.iloc[:split_idx], X.iloc[split_idx:]
+    y_train, y_test = y.iloc[:split_idx], y.iloc[split_idx:]
+    
+    # Standardize the features using training data only.
     scaler = StandardScaler()
     X_train = scaler.fit_transform(X_train)
     X_test = scaler.transform(X_test)
+    
     return X_train, X_test, y_train, y_test
+
 
 
 
